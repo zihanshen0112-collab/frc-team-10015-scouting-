@@ -5,20 +5,27 @@ var config_data = `
   "page_title": "REBUILT",
   "checkboxAs": "10",
   "prematch": [
-    { "name": "Scouter Initials",
-      "code": "s",
-      "type": "scouter",
-      "size": 5,
-      "maxSize": 5,
-      "required": "true"
-    },
     { "name": "Event",
       "code": "e",
       "type": "event",
-      "defaultValue": "2026ilch",
+      "defaultValue": "2026ONNOB",
       "required": "true"
     },
-    { "name": "Match Level",
+    { "name": "Scouter Name",
+      "code": "s",
+      "type": "scouter",
+      "size": 15,
+      "maxSize": 30,
+      "required": "true"
+    },
+    { "name": "Match #",
+      "code": "m",
+      "type": "match",
+      "min": 1,
+      "max": 150,
+      "required": "true"
+    },
+    { "name": "Match Type",
       "code": "l",
       "type": "level",
       "choices": {
@@ -29,14 +36,7 @@ var config_data = `
       "defaultValue": "qm",
       "required": "true"
     },
-    { "name": "Match #",
-      "code": "m",
-      "type": "match",
-      "min": 1,
-      "max": 150,
-      "required": "true"
-    },
-    { "name": "Robot",
+    { "name": "Driver Station Pos.",
       "code": "r",
       "type": "robot",
       "choices": {
@@ -47,206 +47,219 @@ var config_data = `
         "r3": "Red-3",
         "b3": "Blue-3"
       },
-      "required": "true"
+      "required":"true"
     },
     { "name": "Team #",
       "code": "t",
       "type": "team",
       "min": 1,
-      "max": 99999
-    },
-    { "name": "Auto Start Location",
-      "code": "as",
-      "type": "clickable_image",
-      "filename": "2026/half_field.png",
-      "clickRestriction": "one",
-      "dimensions": "7 10",
-      "allowableResponses": "4 11 18 25 32 39 46 53 60 67",
-      "shape": "circle 5 black red true"
+      "max": 99999,
+      "required": "true"
     }
   ],
   "auton": [
-    { "name": "Auto Shooting Location",
-      "code": "asl",
-      "type": "clickable_image",
-      "filename": "2026/half_field.png",
-      "dimensions": "7 10",
-      "allowableResponses": "1 2 3 4 8 9 10 11 15 16 17 18 22 23 24 25 29 30 31 32 36 37 38 39 43 44 45 46 50 51 52 53 57 58 59 60 64 65 66 67",
-      "expectedMax": 5,
-      "shape": "circle 5 black red true"
-    },
-    { "name": "Fuel Scored",
-      "code": "afs",
-      "expectedMax": 32,
-      "altInc1": 10,
-      "altInc2": 5,
-      "type": "counter"
-    },
-    { "name": "Pass from Neutral Zone",
-      "code": "apn",
-      "expectedMax": 60,
-      "altInc1": 10,
-      "altInc2": 5,
-      "type": "counter"
-    },
-    { "name": "Climb (L1)",
-      "code": "ac",
-      "type": "radio",
-      "choices": {
-        "c": "Climbed<br>",
-        "a": "Attempted<br>",
-        "x": "Not Attempted"
-      },
-      "defaultValue": "x"
+    { "name": "Have Working Auto?",
+      "code": "auto_working",
+      "type": "checkbox",
+      "required": "true"
     },
     { "name": "Pickup from Depot",
-      "code": "afd",
-      "type": "bool"
+      "code": "auto_depot",
+      "type": "checkbox"
     },
     { "name": "Pickup from Outpost",
-      "code": "afo",
-      "type": "bool"
+      "code": "auto_outpost",
+      "type": "checkbox"
     },
     { "name": "Pickup from Neutral Zone",
-      "code": "aff",
-      "type": "bool"
+      "code": "auto_neutral",
+      "type": "checkbox"
+    },
+    { "name": "Shooting Cycle Number",
+      "code": "auto_cycle_num",
+      "type": "number",
+      "min": 0,
+      "max": 99,
+      "defaultValue": 0
+    },
+    { "name": "Any comments",
+      "code": "auto_comments",
+      "type": "text",
+      "size": 50,
+      "maxSize": 250
     }
   ],
   "teleop": [
-    { "name": "Shooting Locations",
-      "code": "tsl",
-      "type": "clickable_image",
-      "filename": "2026/half_field.png",
-      "dimensions": "7 10",
-      "allowableResponses": "1 2 3 4 8 9 10 11 15 16 17 18 22 23 24 25 29 30 31 32 36 37 38 39 43 44 45 46 50 51 52 53 57 58 59 60 64 65 66 67",
-      "expectedMax": 25,
-      "shape": "circle 5 black red true"
-    },
-    { "name": "Fuel Scored",
-      "code": "tfs",
-      "expectedMax": 150,
-      "altInc1": 10,
-      "altInc2": 5,
+    { "name": "ACTIVE scores",
+      "code": "tc1",
       "type": "counter"
     },
-    { "name": "Pass from Neutral Zone",
-      "code": "pnz",
-      "expectedMax": 250,
-      "altInc1": 10,
-      "altInc2": 5,
+    { "name": "ACTIVE passes from middle",
+      "code": "tc2",
       "type": "counter"
     },
-    { "name": "Pass from Opp Alliance Zone",
-      "code": "poa",
-      "expectedMax": 250,
-      "altInc1": 10,
-      "altInc2": 5,
+    { "name": "ACTIVE passes from far",
+      "code": "tc3",
       "type": "counter"
     },
-    { "name": "Pickup from Depot",
-      "code": "tfd",
-      "type": "bool"
+    { "name": "ACTIVE bump crosses",
+      "code": "tc4",
+      "type": "counter"
     },
-    { "name": "Pickup from Outpost",
-      "code": "tfo",
-      "type": "bool"
+    { "name": "ACTIVE trench crosses",
+      "code": "tc5",
+      "type": "counter"
     },
-    { "name": "Pickup from Floor",
-      "code": "tff",
-      "type": "bool"
-    }
-  ],
-  "endgame": [
-    { "name": "Climb",
-      "code": "tc",
-      "type": "radio",
-      "choices": {
-        "1": "Level 1<br>",
-        "2": "Level 2<br>",
-        "3": "Level 3<br>",
-        "a": "Attempted<br>",
-        "x": "Not Attempted"
-      },
-      "defaultValue": "x"
+    { "name": "INACTIVE passes middle",
+      "code": "tc6",
+      "type": "counter"
+    },
+    { "name": "INACTIVE passes from far",
+      "code": "tc7",
+      "type": "counter"
+    },
+    { "name": "INACTIVE bump crosses",
+      "code": "tc8",
+      "type": "counter"
+    },
+    { "name": "INACTIVE trench crosses",
+      "code": "tc9",
+      "type": "counter"
+    },
+    { "name": "Time of Scores",
+      "code": "time_scores",
+      "type": "counter"
+    },
+    { "name": "Number of cycles for Shift 1",
+      "code": "cycles_shift1",
+      "type": "counter"
+    },
+    { "name": "Number of cycles for Shift 2",
+      "code": "cycles_shift2",
+      "type": "counter"
+    },
+    { "name": "Number of cycles for Endgame",
+      "code": "cycles_endgame",
+      "type": "counter"
     }
   ],
   "postmatch": [
-    { "name": "Driver Skill",
-      "code": "ds",
-      "type": "radio",
-      "choices": {
-        "n": "Not Effective<br>",
-        "a": "Average<br>",
-        "v": "Very Effective<br>",
-        "x": "Not Observed"
-      },
-      "defaultValue": "x"
-    },
-    { "name": "Defense Rating",
-      "code": "dr",
-      "type": "radio",
-      "choices": {
-        "b": "Below Average<br>",
-        "a": "Average<br>",
-        "g": "Good<br>",
-        "e": "Excellent<br>",
-        "x": "Did not play defense"
-      },
-      "defaultValue": "x"
-    },
-    { "name": "Speed Rating",
-      "code": "sr",
-      "type": "radio",
-      "choices": {
-        "1": "1 (slow)<br>",
-        "2": "2<br>",
-        "3": "3<br>",
-        "4": "4<br>",
-        "5": "5 (fast)"
-      },
-      "defaultValue":"3"
-    },
-    { "name": "Crossed Bump",
-      "code": "bmp",
-      "type": "bool"
-    },
-    { "name": "Crossed Trench",
-      "code": "tre",
-      "type": "bool"
-    },
-    { "name": "Died/Immobilized",
-      "code": "die",
-      "type": "bool"
-    },
-    { "name": "Tippy<br>(almost tipped over)",
-      "code": "tip",
-      "type": "bool"
-    },
-    { "name": "Make good<br>alliance partner?",
-      "tooltip": "Would you want this robot on your alliance in eliminations?",
-      "code": "all",
-      "type": "bool"
-    },
-    { "name": "Was Defended",
-      "code": "def",
-      "type": "bool"
-    },
-    { "name": "Excessive Penalties",
-      "code": "pen",
-      "type": "bool"
-    },
-    { "name": "Fuel Percentage",
-      "tooltip": "What percentage of the total fuel for this alliance did this robot score?",
-      "code": "pct",
+    { "name": "Vibes Power Index",
+      "code": "vpi",
       "type": "number",
-      "min": 0,
-      "max": 100
+      "min": 1,
+      "max": 100,
+      "defaultValue": 50,
+      "required": "true"
     },
-    { "name": "Comments",
-      "code": "co",
+    { "name": "Broke?",
+      "code": "broke",
+      "type": "checkbox",
+      "required": "true"
+    },
+    { "name": "Accuracy?",
+      "code": "accu",
+      "type": "radio",
+      "choices": {
+        "0.0": "0",
+        "0.2": "0.2",
+        "0.4": "0.4",
+        "0.6": "0.6",
+        "0.8": "0.8",
+        "1.0": "1"
+      },
+      "required": "true"
+    },
+    { "name": "Intake Quality",
+      "code": "is",
+      "type": "radio",
+      "choices": {
+        "Low": "Low<br>",
+        "Average": "Average<br>",
+        "High": "High"
+      },
+      "required": "true"
+    },
+    { "name": "SCORING LOCATION Hub?",
+      "code": "huby",
+      "type": "checkbox",
+      "required": "true"
+    },
+    { "name": "SCORING LOCATION Tower?",
+      "code": "tow",
+      "type": "checkbox",
+      "required": "true"
+    },
+    { "name": "SCORING LOCATION Far Corner?",
+      "code": "cor",
+      "type": "checkbox",
+      "required": "true"
+    },
+    { "name": "SCORING LOCATION Trench?",
+      "code": "tret",
+      "type": "checkbox",
+      "required": "true"
+    },
+    { "name": "SCORING LOCATION Other?",
+      "code": "oth",
+      "type": "checkbox",
+      "required": "true"
+    },
+    { "name": "PLAYSTYLE Cleanup Bot?",
+      "code": "clean",
+      "type": "checkbox",
+      "required": "true"
+    },
+    { "name": "PLAYSTYLE Passing Bot?",
+      "code": "passing",
+      "type": "checkbox",
+      "required": "true"
+    },
+    { "name": "PLAYSTYLE Full Field Cycler?",
+      "code": "fullfield",
+      "type": "checkbox",
+      "required": "true"
+    },
+    { "name": "PLAYSTYLE Defense?",
+      "code": "defbot",
+      "type": "checkbox",
+      "required": "true"
+    },
+    { "name": "PLAYSTYLE  Other (describe in comments)?",
+      "code": "otherpla",
+      "type": "checkbox",
+      "required": "true"
+    },
+    { "name": "Teleop Playstyle",
+      "tooltip": "preferred intaking locations, preferred scoring locations, driving paths, etc.",
+      "code": "wdt",
       "type": "text",
-      "size": 15,
-      "maxSize": 55
+      "size": 50,
+      "maxSize": 250,
+      "required": "true"
+    },
+    { "name": "Reliability",
+      "tooltip": "Describe what broke, nothing broke but looked shaky, very solid, etc.",
+      "code": "rel",
+      "type": "text",
+      "size": 50,
+      "maxSize": 250,
+      "required": "true"
+    },
+    { "name": "Drive Quality",
+      "tooltip": "Beached? Quality of Defense? Penalties?",
+      "code": "drq",
+      "type": "text",
+      "size": 50,
+      "maxSize": 250,
+      "required": "true"
+    },
+    { "name": "Silly Comments",
+      "code": "silly",
+      "type": "text",
+      "size": 50,
+      "maxSize": 250,
+      "required": "true"
     }
   ]
 }`;

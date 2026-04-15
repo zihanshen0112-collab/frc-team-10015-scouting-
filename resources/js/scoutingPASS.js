@@ -2,7 +2,7 @@
 //
 // The guts of the ScountingPASS application
 // Written by Team 2451 - PWNAGE
-
+var skipValidation = false;
 document.addEventListener("touchstart", startTouch, false);
 document.addEventListener("touchend", moveTouch, false);
 
@@ -148,124 +148,93 @@ function addTimer(table, idx, name, data) {
   return idx + 1;
 }
 
+function goToSlide(targetIndex) {
+  var holder = document.getElementById("main-panel-holder");
+  if (!holder) return;
+
+  var slides = holder.children;
+  if (targetIndex < 0 || targetIndex >= slides.length) return;
+
+  // hide current slide
+  slides[slide].style.display = "none";
+
+  // set new slide index
+  slide = targetIndex;
+
+  // show new slide
+  window.scrollTo(0, 0);
+  slides[slide].style.display = "table";
+
+  // reset data display on QR page
+  var dataDiv = document.getElementById("data");
+  if (dataDiv) dataDiv.innerHTML = "";
+  var copyBtn = document.getElementById("copyButton");
+  if (copyBtn) copyBtn.setAttribute("value", "Copy Data");
+}
+
 function addCounter(table, idx, name, data) {
-  const row = table.insertRow(idx);
-  const hasExtraInc = data.hasOwnProperty('altInc1') || data.hasOwnProperty('altInc2');
-  
-  // Error Handling
+  var row = table.insertRow(idx);
+  var cell1 = row.insertCell(0);
+  cell1.style.width = ColWidth;
+  cell1.classList.add("title");
   if (!data.hasOwnProperty('code')) {
-    const errorCell = row.insertCell(0);
-    errorCell.classList.add("title");
-    errorCell.innerHTML = `Error: No code specified for ${name}`;
+    cell1.innerHTML = `Error: No code specified for ${name}`;
     return idx + 1;
   }
-
-  // Create title cell
-  const titleCell = row.insertCell(0);
-  titleCell.classList.add("title");
+  var cell2 = row.insertCell(1);
+  cell2.style.width = ColWidth;
+  cell1.innerHTML = name + '&nbsp;';
   if (data.hasOwnProperty('tooltip')) {
-    titleCell.setAttribute("title", data.tooltip);
+    cell1.setAttribute("title", data.tooltip);
   }
+  cell2.classList.add("field");
 
-  let controlCell;
+  var button1 = document.createElement("input");
+  button1.setAttribute("type", "button");
+  button1.setAttribute("id", "minus_" + data.code);
+  button1.setAttribute("onclick", "counter(this.parentElement, -1)");
+  button1.setAttribute("value", "-");
+  cell2.appendChild(button1);
 
-  if (hasExtraInc) {
-    // When extra increments exist, use a single cell with colspan
-    titleCell.setAttribute("colspan", 2);
-    titleCell.style.cssText = 'text-align: center; vertical-align: middle;';
-    
-    // Create wrapper div for flex layout
-    const wrapper = document.createElement("div");
-    wrapper.style.cssText = 'display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;';
-    
-    // Create label
-    const label = document.createElement("div");
-    label.textContent = name;
-    label.style.cssText = 'margin-bottom: 4px;';
-    wrapper.appendChild(label);
-    
-    titleCell.appendChild(wrapper);
-    controlCell = wrapper;
+  var inp = document.createElement("input");
+  inp.classList.add("counter");
+  inp.setAttribute("id", "input_" + data.code);
+  inp.setAttribute("type", "text");
+  if (enableGoogleSheets && data.hasOwnProperty('gsCol')) {
+    inp.setAttribute("name", data.gsCol);
   } else {
-    // Standard two-cell layout
-    titleCell.style.width = ColWidth;
-    titleCell.innerHTML = `${name}&nbsp;`;
-    
-    controlCell = row.insertCell(1);
-    controlCell.style.width = ColWidth;
-    controlCell.classList.add("field");
-    controlCell.style.cssText = 'text-align: center !important; vertical-align: middle;';
+    inp.setAttribute("name", data.code);
   }
+  inp.setAttribute("style", "background-color: black; color: white;border: none; text-align: center;");
+  inp.setAttribute("disabled", "");
+  inp.setAttribute("value", 0);
+  inp.setAttribute("size", 2);
+  inp.setAttribute("maxLength", 2);
+  cell2.appendChild(inp);
 
-  // Create centered container for buttons
-  const centerContainer = document.createElement("div");
-  centerContainer.style.cssText = 'display: flex; justify-content: center; align-items: center; width: 100%;';
-  
-  // Create button group
-  const buttonGroup = document.createElement("div");
-  buttonGroup.style.cssText = 'display: inline-flex; align-items: center; gap: 10px;';
+  var button2 = document.createElement("input");
+  button2.setAttribute("type", "button");
+  button2.setAttribute("id", "plus_" + data.code);
+  button2.setAttribute("onclick", "counter(this.parentElement, 1)");
+  button2.setAttribute("value", "+");
+  cell2.appendChild(button2);
 
-  // Helper to create input elements
-  const createInput = (type, id, value, incrementValue) => {
-    const input = document.createElement("input");
-    input.type = type;
-    if (id) input.id = id;
-    if (value !== undefined) input.value = value;
-    if (incrementValue !== undefined) {
-      input.onclick = function() {
-        counter(this.parentElement.parentElement.parentElement, incrementValue);
-      };
+  if (data.hasOwnProperty('cycleTimer')) {
+    if (data.cycleTimer != "") {
+      inp = document.createElement('input');
+      inp.setAttribute("hidden", "");
+      inp.setAttribute("id", "cycleTimer_" + data.code);
+      inp.setAttribute("value", data.cycleTimer);
+      cell.appendChild(inp);
     }
-	// Prevent double-tap zoom on buttons
-    if (type === "button") {
-      input.style.touchAction = 'manipulation';
-    }
-    return input;
-  };
-
-  // Build buttons from left to right
-  if (data.altInc1) {
-    buttonGroup.appendChild(createInput("button", `minusInc1_${data.code}`, -data.altInc1, -data.altInc1));
-  }
-  
-  if (data.altInc2) {
-    buttonGroup.appendChild(createInput("button", `minusInc2_${data.code}`, -data.altInc2, -data.altInc2));
-  }
-  
-  buttonGroup.appendChild(createInput("button", `minus_${data.code}`, "-", -1));
-
-  // Create main counter input
-  const counterInput = createInput("text", `input_${data.code}`, 0);
-  counterInput.classList.add("counter");
-  counterInput.name = (enableGoogleSheets && data.gsCol) ? data.gsCol : data.code;
-  counterInput.disabled = true;
-  counterInput.maxLength = 4;
-  counterInput.style.cssText = 'background-color: black; color: white; border: none; text-align: center; width: 3ch;';
-  buttonGroup.appendChild(counterInput);
-
-  buttonGroup.appendChild(createInput("button", `plus_${data.code}`, "+", 1));
-  
-  if (data.altInc2) {
-    buttonGroup.appendChild(createInput("button", `plusInc2_${data.code}`, `+${data.altInc2}`, data.altInc2));
-  }
-  
-  if (data.altInc1) {
-    buttonGroup.appendChild(createInput("button", `plusInc1_${data.code}`, `+${data.altInc1}`, data.altInc1));
-  }
-
-  // Nest: centerContainer -> buttonGroup
-  centerContainer.appendChild(buttonGroup);
-  controlCell.appendChild(centerContainer);
-
-  // Add hidden metadata fields directly to controlCell
-  if (data.cycleTimer) {
-    const timerInput = createInput("hidden", `cycleTimer_${data.code}`, data.cycleTimer);
-    controlCell.appendChild(timerInput);
   }
 
   if (data.hasOwnProperty('defaultValue')) {
-    const defaultInput = createInput("hidden", `default_${data.code}`, data.defaultValue);
-    controlCell.appendChild(defaultInput);
+    var def = document.createElement("input");
+    def.setAttribute("id", "default_" + data.code)
+    def.setAttribute("type", "hidden");
+    def.setAttribute("value", data.defaultValue);
+    cell2.appendChild(def);
   }
 
   return idx + 1;
@@ -808,20 +777,12 @@ function configure() {
   });
 
   // Configure teleop screen
-  var tc = mydata.teleop;
-  var tt = document.getElementById("teleop_table");
-  idx = 0;
-  tc.forEach(element => {
-    idx = addElement(tt, idx, element);
-  });
+  buildTeleopLayout(mydata.teleop);
 
-  // Configure endgame screen
-  var egc = mydata.endgame;
-  var egt = document.getElementById("endgame_table");
-  idx = 0;
-  egc.forEach(element => {
-    idx = addElement(egt, idx, element);
-  });
+  // Configure endgame screen(Removed)
+if (mydata.endgame && document.getElementById("endgame_table")) {
+  // intentionally left empty since we do not use endgame
+}
 
   // Configure postmatch screen
   pmc = mydata.postmatch;
@@ -836,6 +797,236 @@ function configure() {
   }
 
   return 0
+}
+
+// ========== Teleop 自定义布局 ==========
+function buildTeleopLayout(teleopFields) {
+  var container = document.getElementById("teleop_table");
+  if (!container) return;
+  
+  // 清空原有内容
+  container.innerHTML = "";
+  
+  // 动态插入样式（保证黑色边框等外观）
+  if (!document.getElementById("teleop-custom-style")) {
+    var style = document.createElement("style");
+    style.id = "teleop-custom-style";
+    style.textContent = `
+      .teleop-main-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+      .teleop-large-box {
+        flex: 1;
+        min-width: 250px;
+        border: 2px solid black;
+        border-radius: 8px;
+        padding: 12px;
+        background-color: #f9f9f9;
+      }
+      .teleop-large-box > h3 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 12px;
+        font-size: 1.2em;
+      }
+      .teleop-sub-row {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+      }
+      .teleop-small-box {
+        flex: 1;
+        border: 2px solid black;
+        border-radius: 6px;
+        padding: 10px;
+        background-color: #ffffff;
+      }
+      .teleop-small-box > h4 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      .teleop-counter-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        padding: 4px;
+      }
+      .teleop-counter-label {
+        flex: 2;
+        font-weight: bold;
+      }
+      .teleop-counter-controls {
+        flex: 1;
+        display: flex;
+        gap: 5px;
+        justify-content: flex-end;
+      }
+      .teleop-counter-controls input {
+        width: 40px;
+        text-align: center;
+      }
+      .teleop-bottom-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: space-between;
+        margin-top: 15px;
+        border-top: 1px solid #ccc;
+        padding-top: 15px;
+      }
+      .teleop-bottom-item {
+        flex: 1;
+        min-width: 180px;
+      }
+      @media (max-width: 700px) {
+        .teleop-main-row { flex-direction: column; }
+        .teleop-sub-row { flex-direction: column; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // 辅助函数：创建单个 counter 控件（复用队伍版风格）
+  function createCounterWidget(code, displayName, defaultValue = 0) {
+    var wrapper = document.createElement("div");
+    wrapper.className = "teleop-counter-group";
+    
+    var labelSpan = document.createElement("span");
+    labelSpan.className = "teleop-counter-label";
+    labelSpan.textContent = displayName;
+    wrapper.appendChild(labelSpan);
+    
+    var controlsDiv = document.createElement("div");
+    controlsDiv.className = "teleop-counter-controls";
+    
+    var minusBtn = document.createElement("input");
+    minusBtn.type = "button";
+    minusBtn.value = "-";
+    minusBtn.onclick = (function(c) { return function() { counter(c.parentElement.parentElement, -1); }; })(wrapper);
+    controlsDiv.appendChild(minusBtn);
+    
+    var inputField = document.createElement("input");
+    inputField.type = "text";
+    inputField.className = "counter";
+    inputField.id = "input_" + code;
+    inputField.name = code;
+    inputField.disabled = true;
+    inputField.value = defaultValue;
+    inputField.style.width = "40px";
+    inputField.style.textAlign = "center";
+    inputField.style.backgroundColor = "black";
+    inputField.style.color = "white";
+    controlsDiv.appendChild(inputField);
+    
+    var plusBtn = document.createElement("input");
+    plusBtn.type = "button";
+    plusBtn.value = "+";
+    plusBtn.onclick = (function(c) { return function() { counter(c.parentElement.parentElement, 1); }; })(wrapper);
+    controlsDiv.appendChild(plusBtn);
+    
+    wrapper.appendChild(controlsDiv);
+    return wrapper;
+  }
+  
+  // 将 teleopFields 数组转为对象映射，便于按 code 查找名称
+  var fieldMap = {};
+  teleopFields.forEach(f => { fieldMap[f.code] = f; });
+  
+  // 定义布局映射
+  var groups = {
+    trench: { codes: ["tc5", "tc9"], title: "Trench", labels: ["ACTIVE trench crosses", "INACTIVE trench crosses"] },
+    bump:   { codes: ["tc4", "tc8"], title: "Bump",   labels: ["ACTIVE bump crosses", "INACTIVE bump crosses"] },
+    neutral:{ codes: ["tc2", "tc6"], title: "Neutral",labels: ["ACTIVE passes from middle", "INACTIVE passes middle"] },
+    opp:    { codes: ["tc3", "tc7"], title: "Opposite",labels: ["ACTIVE passes from far", "INACTIVE passes from far"] }
+  };
+  
+  // 创建主行（Transport 和 Passing 两大列）
+  var mainRow = document.createElement("div");
+  mainRow.className = "teleop-main-row";
+  
+  // ---- Transport 列 ----
+  var transportBox = document.createElement("div");
+  transportBox.className = "teleop-large-box";
+  transportBox.innerHTML = "<h3>Transport</h3>";
+  var transportSubRow = document.createElement("div");
+  transportSubRow.className = "teleop-sub-row";
+  
+  // Trench 小盒
+  var trenchBox = document.createElement("div");
+  trenchBox.className = "teleop-small-box";
+  trenchBox.innerHTML = "<h4>Trench</h4>";
+  trenchBox.appendChild(createCounterWidget("tc5", groups.trench.labels[0]));
+  trenchBox.appendChild(createCounterWidget("tc9", groups.trench.labels[1]));
+  transportSubRow.appendChild(trenchBox);
+  
+  // Bump 小盒
+  var bumpBox = document.createElement("div");
+  bumpBox.className = "teleop-small-box";
+  bumpBox.innerHTML = "<h4>Bump</h4>";
+  bumpBox.appendChild(createCounterWidget("tc4", groups.bump.labels[0]));
+  bumpBox.appendChild(createCounterWidget("tc8", groups.bump.labels[1]));
+  transportSubRow.appendChild(bumpBox);
+  
+  transportBox.appendChild(transportSubRow);
+  
+  // ---- Passing 列 ----
+  var passingBox = document.createElement("div");
+  passingBox.className = "teleop-large-box";
+  passingBox.innerHTML = "<h3>Passing</h3>";
+  var passingSubRow = document.createElement("div");
+  passingSubRow.className = "teleop-sub-row";
+  
+  // Neutral 小盒
+  var neutralBox = document.createElement("div");
+  neutralBox.className = "teleop-small-box";
+  neutralBox.innerHTML = "<h4>Neutral</h4>";
+  neutralBox.appendChild(createCounterWidget("tc2", groups.neutral.labels[0]));
+  neutralBox.appendChild(createCounterWidget("tc6", groups.neutral.labels[1]));
+  passingSubRow.appendChild(neutralBox);
+  
+  // Opposite 小盒
+  var oppBox = document.createElement("div");
+  oppBox.className = "teleop-small-box";
+  oppBox.innerHTML = "<h4>Opposite</h4>";
+  oppBox.appendChild(createCounterWidget("tc3", groups.opp.labels[0]));
+  oppBox.appendChild(createCounterWidget("tc7", groups.opp.labels[1]));
+  passingSubRow.appendChild(oppBox);
+  
+  passingBox.appendChild(passingSubRow);
+  
+  mainRow.appendChild(transportBox);
+  mainRow.appendChild(passingBox);
+  container.appendChild(mainRow);
+  
+  // ---- 底部区域：ACTIVE scores + 新加的四个 counter ----
+  var bottomRow = document.createElement("div");
+  bottomRow.className = "teleop-bottom-row";
+  
+  // ACTIVE scores (tc1)
+  var activeScoresDiv = document.createElement("div");
+  activeScoresDiv.className = "teleop-bottom-item";
+  activeScoresDiv.appendChild(createCounterWidget("tc1", "ACTIVE scores"));
+  bottomRow.appendChild(activeScoresDiv);
+  
+  // 新加的四个 counter
+  var newCodes = ["time_scores", "cycles_shift1", "cycles_shift2", "cycles_endgame"];
+  var newNames = ["Time of Scores", "Number of cycles for Shift 1", "Number of cycles for Shift 2", "Number of cycles for Endgame"];
+  for (var i = 0; i < newCodes.length; i++) {
+    var div = document.createElement("div");
+    div.className = "teleop-bottom-item";
+    div.appendChild(createCounterWidget(newCodes[i], newNames[i]));
+    bottomRow.appendChild(div);
+  }
+  
+  container.appendChild(bottomRow);
 }
 
 function getRobot(){
@@ -854,26 +1045,31 @@ return document.forms.scoutingForm.l.value
 
 
 function validateData() {
+  if (skipValidation) {
+    return true;
+  }
+
   var ret = true;
   var errStr = "";
   for (rf of requiredFields) {
     var thisRF = document.forms.scoutingForm[rf];
-	if (thisRF.value == "[]" || thisRF.value.length == 0) {
-	  if (rf == "as") {
-		rftitle = "Auto Start Position"
-	  } else {
-		thisInputEl = thisRF instanceof RadioNodeList ? thisRF[0] : thisRF;
-		rftitle = thisInputEl.parentElement.parentElement.children[0].innerHTML.replace("&nbsp;","");
-	  }
-	  errStr += rf + ": " + rftitle + "\n";
-	  ret = false;
-	}
+    if (thisRF.value == "[]" || thisRF.value.length == 0) {
+      if (rf == "as") {
+        rftitle = "Auto Start Position"
+      } else {
+        thisInputEl = thisRF instanceof RadioNodeList ? thisRF[0] : thisRF;
+        rftitle = thisInputEl.parentElement.parentElement.children[0].innerHTML.replace("&nbsp;","");
+      }
+      errStr += rf + ": " + rftitle + "\n";
+      ret = false;
+    }
   }
   if (ret == false) {
     alert("Enter all required values\n" + errStr);
   }
   return ret
 }
+
 
 function getData(dataFormat) {
   var Form = document.forms.scoutingForm;
@@ -929,21 +1125,29 @@ function getData(dataFormat) {
 }
 
 function updateQRHeader() {
-  let str = 'Event: !EVENT! Match: !MATCH! Robot: !ROBOT! Team: !TEAM!';
+  const getVal = (id) => {
+    const el = document.getElementById(id);
+    return el ? (el.value ?? el.textContent ?? "") : "";
+  };
 
+  let str;
   if (!pitScouting) {
-    str = str
-      .replace('!EVENT!', document.getElementById("input_e").value)
-      .replace('!MATCH!', document.getElementById("input_m").value)
-      .replace('!ROBOT!', document.getElementById("display_r").value)
-      .replace('!TEAM!', document.getElementById("input_t").value);
+    // safely read the fields
+    const ev = getVal("input_e");
+    const match = getVal("input_m");
+    const robot = getVal("display_r");  // exists only if you have a radio with code "r"
+    const team = getVal("input_t");
+
+    str = `Event: ${ev} Match: ${match} Robot: ${robot} Team: ${team}`;
   } else {
-    str = 'Pit Scouting - Team !TEAM!'
-      .replace('!TEAM!', document.getElementById("input_t").value);
+    const team = getVal("input_t");
+    str = `Pit Scouting - Team ${team}`;
   }
 
-  document.getElementById("display_qr-info").textContent = str;
+  const info = document.getElementById("display_qr-info");
+  if (info) info.textContent = str;
 }
+
 
 
 function qr_regenerate() {
@@ -974,20 +1178,22 @@ function clearForm() {
   var e = 0;
 
   if (pitScouting) {
-    swipePage(-1);
+    // whatever slide index you use for pit, often 0
+    goToSlide(0);
   } else {
-    swipePage(-5);
+    // send back to prematch page, usually slide 0
+    goToSlide(0);
 
     // Increment match
-    match = parseInt(document.getElementById("input_m").value)
-    if (match == NaN) {
-      document.getElementById("input_m").value = ""
+    match = parseInt(document.getElementById("input_m").value);
+    if (isNaN(match)) {
+      document.getElementById("input_m").value = "";
     } else {
-      document.getElementById("input_m").value = match + 1
+      document.getElementById("input_m").value = match + 1;
     }
 
     // Robot
-    resetRobot()
+    resetRobot();
   }
 
   // Clear XY coordinates
@@ -1487,24 +1693,3 @@ window.onload = function () {
     }
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
