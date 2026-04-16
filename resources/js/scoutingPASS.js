@@ -22,9 +22,21 @@ var options = {
   quietZoneColor: '#FFFFFF'
 };
 
+// The team prompts the data source configuration
+// Replace the GOOGLE_SHEETS_CSV_URL below with the CSV link you actually published
+var TEAM_HINTS_URL_GOOGLE = "https://docs.google.com/spreadsheets/d/1fusNT2Bx3krLfqGlbzY6-Nwzw02tNh1o6fbRNlTCGkM/edit?gid=0#gid=0";
+var TEAM_HINTS_URL_LOCAL = "team_hints.json";  // Local backup JSON file
+
+// Data source selection: 'google' or 'local'. If Google cannot access the site, you can manually change it to 'local'.
+var TEAM_HINTS_SOURCE = 'google';  // Google Sheets is used by default
+
+// The team prompts for data storage
+var teamHints = {};
+var teamHintsLoaded = false;
+
 // Built from the JSON
 var requiredFields = []; //["e", "m", "l", "r", "s", "as"];
-// 排班轮换配置
+// Shift rotation configuration
 var shiftConfig = { period: null, states: [] };
 var shiftLoaded = false;
 
@@ -859,6 +871,16 @@ if (mydata.endgame && document.getElementById("endgame_table")) {
   shiftCell.style.padding = "8px";
   updateShiftHint();
 
+  // 在 postmatch_table 底部添加队伍提示行
+  var postTable = document.getElementById("postmatch_table");
+  var teamHintRow = postTable.insertRow(postTable.rows.length);
+  var teamHintCell = teamHintRow.insertCell(0);
+  teamHintCell.setAttribute("colspan", 2);
+  teamHintCell.id = "team-hint";
+  teamHintCell.style.textAlign = "center";
+  teamHintCell.style.padding = "8px";
+  updateTeamHint();
+
   if (!enableGoogleSheets) {
     document.getElementById("submit").style.display = "none";
   }
@@ -1588,11 +1610,13 @@ function updateMatchStart(event) {
   }
   if (event.target.id.startsWith("input_r")) {
     document.getElementById("input_t").value = getCurrentTeamNumberFromRobot().replace("frc", "");
+    updateTeamHint();
     onTeamnameChange();
   }
   if (event.target.id == "input_m") {
     if (getRobot() != "" && typeof getRobot()) {
       document.getElementById("input_t").value = getCurrentTeamNumberFromRobot().replace("frc", "");
+      updateTeamHint();
       onTeamnameChange();
     }
   }
@@ -1606,6 +1630,87 @@ function onTeamnameChange(event) {
   } else {
     teamLabel.innerText = "";
   }
+}
+
+// Auxiliary function: Parse the CSV text into the {team number: hint} object
+function parseCSV(csvText) {
+    var lines = csvText.split(/\r?\n/);
+    if (lines.length < 2) return {};
+    var headers = lines[0].split(",");
+    var teamIdx = -1, hintIdx = -1;
+    for (var i = 0; i < headers.length; i++) {
+        var h = headers[i].trim().toLowerCase();
+        if (h === "team_number" || h === "team" || h === "team#") teamIdx = i;
+        if (h === "hint" || h === "notes" || h === "comment") hintIdx = i;
+    }
+    if (teamIdx === -1 || hintIdx === -1) {
+        console.error("CSV format error: Missing team number or prompt bar");
+        return {};
+    }
+    var result = {};
+    for (var i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        var cols = lines[i].split(",");
+        if (cols.length <= teamIdx || cols.length <= hintIdx) continue;
+        var teamNum = cols[teamIdx].trim();
+        var hint = cols[hintIdx].trim();
+        if (teamNum) result[teamNum] = hint;
+    }
+    return result;
+}
+
+function loadTeamHints() {
+    var url = (TEAM_HINTS_SOURCE === 'google') ? TEAM_HINTS_URL_GOOGLE : TEAM_HINTS_URL_LOCAL;
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error("HTTP " + response.status);
+            if (url.endsWith('.csv')) {
+                return response.text().then(csvText => parseCSV(csvText));
+            } else {
+                return response.json();
+            }
+        })
+        .then(data => {
+            teamHints = data;
+            teamHintsLoaded = true;
+            updateTeamHint();
+            console.log("Team prompt: Loading successful. Data source:", TEAM_HINTS_SOURCE, teamHints);
+        })
+        .catch(err => {
+            console.error(`The team prompted a loading failure (${TEAM_HINTS_SOURCE})`, err);
+            if (TEAM_HINTS_SOURCE === 'google') {
+                console.log("Automatically switch to the local data source...");
+                TEAM_HINTS_SOURCE = 'local';
+                loadTeamHints();
+            } else {
+                teamHints = {};
+                teamHintsLoaded = true;
+                updateTeamHint();
+            }
+        });
+}
+
+function updateTeamHint() {
+    var teamInput = document.getElementById("input_t");
+    if (!teamInput) return;
+    var teamNum = teamInput.value.trim();
+    var hintText = "";
+    if (!teamHintsLoaded) {
+        hintText = "Team prompt loading...";
+    } else if (teamNum === "") {
+        hintText = "Please enter the team number";
+    } else if (teamHints.hasOwnProperty(teamNum)) {
+        hintText = teamHints[teamNum];
+    } else {
+        hintText = "There are no special instructions for this team";
+    }
+    var hintCell = document.getElementById("team-hint");
+    if (hintCell) {
+        hintCell.style.backgroundColor = "black";
+        hintCell.style.color = "white";
+        hintCell.style.fontWeight = "normal";
+        hintCell.innerHTML = hintText.replace(/\n/g, "<br>");
+    }
 }
 
 /**
@@ -1767,6 +1872,15 @@ window.onload = function () {
       getSchedule(ec);
     }
     this.drawFields();
+
+    // 绑定 Team # 输入事件
+    var teamInputElem = document.getElementById("input_t");
+    if (teamInputElem) {
+        teamInputElem.addEventListener("input", updateTeamHint);
+        teamInputElem.addEventListener("change", updateTeamHint);
+    }
+    // 加载队伍提示
+    loadTeamHints();
 
     // Bind the Match # input event and load the schedule
     var matchInputElem = document.getElementById("input_m");
