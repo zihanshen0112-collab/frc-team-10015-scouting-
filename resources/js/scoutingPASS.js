@@ -1706,7 +1706,7 @@ function updateTeamHint() {
     }
     var hintCell = document.getElementById("team-hint");
     if (hintCell) {
-        hintCell.style.backgroundColor = "black";
+        hintCell.style.backgroundColor = "#6385A5";
         hintCell.style.color = "white";
         hintCell.style.fontWeight = "normal";
         hintCell.innerHTML = hintText.replace(/\n/g, "<br>");
