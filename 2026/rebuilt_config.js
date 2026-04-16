@@ -90,7 +90,7 @@ var config_data = `
     }
   ],
   "teleop": [
-    { "name": "ACTIVE scores",
+    { "name": "Times of Scoring",
       "code": "tc1",
       "type": "counter"
     },
@@ -124,10 +124,6 @@ var config_data = `
     },
     { "name": "INACTIVE trench crosses",
       "code": "tc9",
-      "type": "counter"
-    },
-    { "name": "Time of Scores",
-      "code": "time_scores",
       "type": "counter"
     },
     { "name": "Number of cycles for Shift 1",

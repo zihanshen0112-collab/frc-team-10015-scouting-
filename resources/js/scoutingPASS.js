@@ -796,6 +796,18 @@ if (mydata.endgame && document.getElementById("endgame_table")) {
     document.getElementById("submit").style.display = "none";
   }
 
+  // 彻底移除 Endgame 页面（隐藏并从 DOM 中删除，调整滑动计数）
+  var endgamePanel = document.getElementById("endgame");
+  if (endgamePanel) {
+    endgamePanel.remove(); // 直接移除元素
+  }
+
+  // 如果当前 slide 索引指向了被移除的页面之后（不会发生），但重置一下确保安全
+  if (slide >= document.getElementById("main-panel-holder").children.length) {
+    slide = 0;
+    goToSlide(0);
+  }
+
   return 0
 }
 
@@ -1006,19 +1018,19 @@ function buildTeleopLayout(teleopFields) {
   mainRow.appendChild(passingBox);
   container.appendChild(mainRow);
   
-  // ---- 底部区域：ACTIVE scores + 新加的四个 counter ----
+  // ---- 底部区域：Times of Scoring + 新加的三个 counter ----
   var bottomRow = document.createElement("div");
   bottomRow.className = "teleop-bottom-row";
   
-  // ACTIVE scores (tc1)
+  // Times of Scoring (tc1)
   var activeScoresDiv = document.createElement("div");
   activeScoresDiv.className = "teleop-bottom-item";
-  activeScoresDiv.appendChild(createCounterWidget("tc1", "ACTIVE scores"));
+  activeScoresDiv.appendChild(createCounterWidget("tc1", "Times of Scoring"));
   bottomRow.appendChild(activeScoresDiv);
   
-  // 新加的四个 counter
-  var newCodes = ["time_scores", "cycles_shift1", "cycles_shift2", "cycles_endgame"];
-  var newNames = ["Time of Scores", "Number of cycles for Shift 1", "Number of cycles for Shift 2", "Number of cycles for Endgame"];
+  // 新加的三个 counter
+  var newCodes = ["cycles_shift1", "cycles_shift2", "cycles_endgame"];
+  var newNames = ["Number of cycles for Shift 1", "Number of cycles for Shift 2", "Number of cycles for Endgame"];
   for (var i = 0; i < newCodes.length; i++) {
     var div = document.createElement("div");
     div.className = "teleop-bottom-item";
