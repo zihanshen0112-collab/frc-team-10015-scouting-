@@ -1012,7 +1012,7 @@ function buildTeleopLayout(teleopFields) {
     var minusBtn = document.createElement("input");
     minusBtn.type = "button";
     minusBtn.value = "-";
-    minusBtn.onclick = (function(c) { return function() { counter(c.parentElement.parentElement, -1); }; })(wrapper);
+    minusBtn.onclick = (function(c) { return function() { counter(c, -1); }; })(wrapper);
     controlsDiv.appendChild(minusBtn);
     
     var inputField = document.createElement("input");
@@ -1031,7 +1031,7 @@ function buildTeleopLayout(teleopFields) {
     var plusBtn = document.createElement("input");
     plusBtn.type = "button";
     plusBtn.value = "+";
-    plusBtn.onclick = (function(c) { return function() { counter(c.parentElement.parentElement, 1); }; })(wrapper);
+    plusBtn.onclick = (function(c) { return function() { counter(c, 1); }; })(wrapper);
     controlsDiv.appendChild(plusBtn);
     
     wrapper.appendChild(controlsDiv);

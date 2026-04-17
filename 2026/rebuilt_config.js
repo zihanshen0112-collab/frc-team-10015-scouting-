@@ -60,7 +60,11 @@ var config_data = `
   "auton": [
     { "name": "Have Working Auto?",
       "code": "auto_working",
-      "type": "checkbox",
+      "type": "radio",
+      "choices": {
+        "yes": "Yes",
+        "no": "No"
+      },
       "required": "true"
     },
     { "name": "Pickup from Depot",
