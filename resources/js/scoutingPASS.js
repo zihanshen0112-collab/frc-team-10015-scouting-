@@ -1108,25 +1108,15 @@ function buildTeleopLayout(teleopFields) {
   mainRow.appendChild(passingBox);
   container.appendChild(mainRow);
   
-  // ---- 底部区域：Times of Scoring + 新加的三个 counter ----
+  // 底部区域：只保留 Times of Scoring
   var bottomRow = document.createElement("div");
   bottomRow.className = "teleop-bottom-row";
   
-  // Times of Scoring (tc1)
-  var activeScoresDiv = document.createElement("div");
-  activeScoresDiv.className = "teleop-bottom-item";
-  activeScoresDiv.appendChild(createCounterWidget("tc1", "Times of Scoring"));
-  bottomRow.appendChild(activeScoresDiv);
-  
-  // 新加的三个 counter
-  var newCodes = ["cycles_shift1", "cycles_shift2", "cycles_endgame"];
-  var newNames = ["Number of cycles for Shift 1", "Number of cycles for Shift 2", "Number of cycles for Endgame"];
-  for (var i = 0; i < newCodes.length; i++) {
-    var div = document.createElement("div");
-    div.className = "teleop-bottom-item";
-    div.appendChild(createCounterWidget(newCodes[i], newNames[i]));
-    bottomRow.appendChild(div);
-  }
+  // Times of Scoring (对应 tc1)
+  var tc1Div = document.createElement("div");
+  tc1Div.className = "teleop-bottom-item";
+  tc1Div.appendChild(createCounterWidget("tc1", "Times of Scoring"));
+  bottomRow.appendChild(tc1Div);
   
   container.appendChild(bottomRow);
 }
