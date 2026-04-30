@@ -1109,16 +1109,21 @@ function buildTeleopLayout(teleopFields) {
   container.appendChild(mainRow);
   
   // 底部区域：只保留 Times of Scoring
-  var bottomRow = document.createElement("div");
-  bottomRow.className = "teleop-bottom-row";
+  //var bottomRow = document.createElement("div");
+  //bottomRow.className = "teleop-bottom-row";
   
-  // Times of Scoring (对应 tc1)
-  var tc1Div = document.createElement("div");
-  tc1Div.className = "teleop-bottom-item";
-  tc1Div.appendChild(createCounterWidget("tc1", "Times of Scoring"));
-  bottomRow.appendChild(tc1Div);
+  // Times of Scoring 
+  //var tc1Div = document.createElement("div");
+  //tc1Div.className = "teleop-bottom-item";
+  //tc1Div.appendChild(createCounterWidget("tc1", "Times of Scoring"));
+  //bottomRow.appendChild(tc1Div);
   
-  container.appendChild(bottomRow);
+  //container.appendChild(bottomRow);
+  
+  //{ "name": "Times of Scoring",
+      //"code": "tc1",
+      //"type": "counter"
+    //},
 }
 
 function getRobot(){

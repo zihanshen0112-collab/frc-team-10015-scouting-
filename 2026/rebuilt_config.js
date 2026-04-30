@@ -66,10 +66,6 @@ var config_data = `
     }
   ],
   "teleop": [
-    { "name": "Times of Scoring",
-      "code": "tc1",
-      "type": "counter"
-    },
     { "name": "ACTIVE passes from middle",
       "code": "tc2",
       "type": "counter"
