@@ -57,7 +57,7 @@ var config_data = `
       "required": "true"
     }
   ],
-  "auton": [
+  "auto": [
     { "name": "Any comments",
       "code": "auto_comments",
       "type": "text",
