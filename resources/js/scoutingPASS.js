@@ -538,6 +538,22 @@ function qr_clear() {
   qr.clear();
 }
 
+function displayData() {
+  var dataDiv = document.getElementById('data');
+  if (dataDiv) {
+    dataDiv.innerHTML = getData();
+  }
+}
+
+function copyData() {
+  navigator.clipboard.writeText(getData()).then(() => {
+    var copyBtn = document.getElementById('copyButton');
+    if (copyBtn) copyBtn.setAttribute('value', 'Copied');
+  }).catch(err => {
+    console.error('Copy failed:', err);
+  });
+}
+
 function clearForm() {
   var match = 0;
   if (pitScouting) {
