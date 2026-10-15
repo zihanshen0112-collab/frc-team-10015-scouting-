@@ -570,34 +570,30 @@ function clearForm() {
     for (let rb of document.getElementsByName('r')) rb.checked = false;
   }
 
-  // 清除所有输入字段（保留关键字段）
   var inputs = document.querySelectorAll("[id*='input_']");
   for (let e of inputs) {
-    var code = e.id.substring(6);
+    var code = e.id.substring(6); 
+    
     if (code == "m" || code == "e" || code == "s") continue;
     if (code.substring(0, 2) == "r_" || code.substring(0, 2) == "l_") continue;
 
-    var radio = code.indexOf("_");
-    if (radio > -1) {
-      var baseCode = code.substr(0, radio);
+    if (e.type == "radio") {
       if (e.checked) {
         e.checked = false;
-        document.getElementById("display_" + baseCode).value = "";
-      }
-      var defaultValue = document.getElementById("default_" + baseCode)?.value;
-      if (defaultValue && defaultValue == e.value) {
-        e.checked = true;
-        document.getElementById("display_" + baseCode).value = defaultValue;
-      }
-    } else {
-      if (e.type == "number" || e.type == "text" || e.type == "hidden") {
-        if (e.className == "counter") {
-          e.value = 0;
-        } else {
-          e.value = "";
+        var radioIndex = code.indexOf("_");
+        if (radioIndex > -1) {
+          var baseCode = code.substring(0, radioIndex);
+          var displayEl = document.getElementById("display_" + baseCode);
+          if (displayEl) displayEl.value = "";
         }
-      } else if (e.type == "checkbox") {
-        e.checked = false;
+      }
+    } else if (e.type == "checkbox") {
+      e.checked = false;
+    } else if (e.type == "number" || e.type == "text" || e.type == "hidden") {
+      if (e.classList.contains("counter")) {
+        e.value = 0;
+      } else {
+        e.value = "";
       }
     }
   }
